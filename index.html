@@ -246,6 +246,9 @@
   const toggleBtn = document.getElementById("toggle");
   const eyeIcon = document.getElementById("eye");
 
+  // Store pre-computed password in memory
+  let cachedPassword = "";
+
   // Set dynamic placeholder with current year
   const y = new Date().getFullYear();
   domainEl.placeholder = `e.g. github.com/myuser+${y}`;
@@ -271,6 +274,17 @@
     proofTextEl.textContent = proof || "—";
   }
 
+  async function updatePassword(){
+    const domain = domainEl.value.trim();
+    const secret = secretEl.value;
+    
+    if (domain && secret){
+      cachedPassword = await computePassword(secret, domain);
+    } else {
+      cachedPassword = "";
+    }
+  }
+
   async function handleCopy(){
     setStatus("");
     const domain = domainEl.value.trim();
@@ -288,12 +302,12 @@
     }
 
     try{
-      const psw = await computePassword(secret, domain);
-      if (!psw){
+      // Use pre-computed password for immediate clipboard access
+      if (!cachedPassword){
         setStatus("Couldn’t compute password.", false, true);
         return;
       }
-      const ok = await copyToClipboard(psw);
+      const ok = await copyToClipboard(cachedPassword);
       if (ok){
         setStatus("Password copied to clipboard.", true, false);
       }else{
@@ -306,8 +320,8 @@
   }
 
   // Event listeners
-  secretEl.addEventListener("input", () => { updateProof(); updateButtonState(); });
-  domainEl.addEventListener("input", updateButtonState);
+  secretEl.addEventListener("input", () => { updateProof(); updatePassword(); updateButtonState(); });
+  domainEl.addEventListener("input", () => { updatePassword(); updateButtonState(); });
 
   [domainEl, secretEl].forEach(el => {
     el.addEventListener("keydown", (e) => {
