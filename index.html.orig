@@ -303,16 +303,11 @@
 
     try{
       // Use pre-computed password for immediate clipboard access
-      // Fallback to computing if not ready (e.g., race condition)
-      let password = cachedPassword;
-      if (!password){
-        password = await computePassword(secret, domain);
-      }
-      if (!password){
-        setStatus("Couldn't compute password.", false, true);
+      if (!cachedPassword){
+        setStatus("Couldn’t compute password.", false, true);
         return;
       }
-      const ok = await copyToClipboard(password);
+      const ok = await copyToClipboard(cachedPassword);
       if (ok){
         setStatus("Password copied to clipboard.", true, false);
       }else{
